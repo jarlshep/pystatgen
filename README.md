@@ -1,2 +1,3 @@
 # pystatgen
-static site generator in python
+Static site generator in python
+Project for boot.dev course.
