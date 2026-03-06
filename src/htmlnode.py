@@ -25,9 +25,6 @@ class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         super().__init__(tag, value, None, props)
         
-        if self.children:
-            raise Exception("LeafNodes cannot have children")
-    
     def to_html(self):
         if self.value is None:
             raise ValueError("invalid HTML: no value")
@@ -43,18 +40,16 @@ class ParentNode(HTMLNode):
     def __init__(self, tag, children, props=None):
         super().__init__(tag, None, children, props)
 
-        if self.value:
-            raise Exception("ParentNodes cannot have values")
-
     def to_html(self):
         if self.tag is None:
-            raise ValueError("Parent nodes require a tag")
-        elif self.children is None:
-            raise ValueError("Parent nodes must have children")
-        else:
-            composite = ""
-            for child in self.children:
-                composite += f"{child.to_html()}"
-            return f"<{self.tag}{self.props_to_html()}>{composite}</{self.tag}>"
+            raise ValueError("invalid HTML: no tag")
+        if self.children is None:
+            raise ValueError("invalid HTML: no children")
+        
+        composite = ""
+        for child in self.children:
+            composite += child.to_html()
+        return f"<{self.tag}{self.props_to_html()}>{composite}</{self.tag}>"
 
-
+    def __repr__(self):
+        return f'ParentNode({self.tag}, children: {self.children}, props: {self.props})'
