@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode, TextType
-from inline_markdown import split_nodes_delimiter
+from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 
 class TestTextNode(unittest.TestCase):
     def test_node_code(self):
@@ -86,6 +86,32 @@ class TestTextNode(unittest.TestCase):
             ],
             new_nodes,
         )
+    
+    # image and link extraction
+    def test_extract_markdown_image(self):
+        matches = extract_markdown_images(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("image", "https://i.imgur.com/zjjcJKZ.png")], matches)
+
+    def test_extract_markdown_link(self):
+        matches = extract_markdown_links(
+            "This is text with a [link to google](https://www.google.com)"
+        )
+        self.assertListEqual([("link to google", "https://www.google.com")], matches)
+
+    def test_extract_markdown_image_2(self):
+        matches = extract_markdown_images(
+            "![symbol](images/123/345/zjjcJKZ.png)"
+        )
+        self.assertListEqual([("symbol", "images/123/345/zjjcJKZ.png")], matches)
+
+    def test_extract_markdown_link_2(self):
+        matches = extract_markdown_links(
+            "[Click here](https://www.example.com)"
+        )
+        self.assertListEqual([("Click here", "https://www.example.com")], matches)
+
 
 
 if __name__ == "__main__":
