@@ -1,7 +1,7 @@
 import unittest
 
 from textnode import TextNode, TextType
-from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from inline_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
 
 class TestTextNode(unittest.TestCase):
     def test_node_code(self):
@@ -245,6 +245,44 @@ class TestTextNode(unittest.TestCase):
             new_nodes,
         )
 
+    # test all splitting functions together
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        node_list = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            node_list
+        )
+    
+    def test_text_to_textnodes_wayward_delimiter(self):
+        with self.assertRaises(Exception):
+            text = "This is **text** with an _italic_ word and _a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+            text_to_textnodes(text)
+   
+    def test_text_to_textnodes(self):
+        text = "**text**_italic_`code block`![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg)[link](https://boot.dev)"
+        node_list = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("text", TextType.BOLD),
+                TextNode("italic", TextType.ITALIC),
+                TextNode("code block", TextType.CODE),
+                TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            node_list
+        )
 
 if __name__ == "__main__":
     unittest.main()
