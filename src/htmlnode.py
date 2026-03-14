@@ -25,7 +25,6 @@ class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         super().__init__(tag, value, None, props)
         
-    # Does this need to be redone for images and pure text?
     def to_html(self):
         if self.value is None:
             raise ValueError("invalid HTML: no value")
@@ -50,6 +49,10 @@ class ParentNode(HTMLNode):
         composite = ""
         for child in self.children:
             composite += child.to_html()
+
+        if self.tag == "x":
+            return composite
+
         return f"<{self.tag}{self.props_to_html()}>{composite}</{self.tag}>"
 
     def __repr__(self):
