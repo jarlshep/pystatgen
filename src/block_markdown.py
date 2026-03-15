@@ -35,6 +35,8 @@ def convert_olist(block):
 
 
 def convert_code(block):
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
     just_text = block.removeprefix("```\n").removesuffix("```")
     just_text_2 = LeafNode("code", just_text).to_html()
     return LeafNode("pre", just_text_2)
@@ -43,10 +45,12 @@ def convert_quote(block):
     full_text = ""
     lines = block.split("\n")
     for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
         just_text = line.lstrip("> ")
         text_nodes = text_to_textnodes(just_text)
         if text_nodes == [TextNode(just_text, TextType.TEXT)]:
-            full_text += just_text + "\n"
+            full_text += just_text + " "
         else:
             leaf_node_list = []
             for node in text_nodes:
@@ -55,23 +59,28 @@ def convert_quote(block):
             bare_text = ParentNode("x", leaf_node_list).to_html() 
             # "x" tag is meaningless and part of the reworked definition of ParentNode.to_html() to return parsed bare text string for insertion as text without element tags
             # bare_text = new_p.replace("<x>", "").replace("</x>", "") - not needed anymore, above comment
-            full_text += bare_text + "\n"
-    return LeafNode("blockquote", full_text)
+            full_text += bare_text + " "
+    final_text = full_text[:-1]
+    return LeafNode("blockquote", final_text)
 
 def convert_heading(block):
 
-    if block.startswith("# "):
+    blk_check = block.split(" ", 1)
+
+    if blk_check[0] == ("#"):
         heading_size = "h1"
-    if block.startswith("## "):
+    elif blk_check[0] == ("##"):
         heading_size = "h2"
-    if block.startswith("### "):
+    elif blk_check[0] == ("###"):
         heading_size = "h3"
-    if block.startswith("#### "):
+    elif blk_check[0] == ("####"):
         heading_size = "h4"
-    if block.startswith("##### "):
+    elif blk_check[0] == ("#####"):
         heading_size = "h5"
-    if block.startswith("###### "):
+    elif blk_check[0] == ("######"):
         heading_size = "h6"
+    else:
+        raise ValueError("invalid heading syntax")
 
     clean_text = block.lstrip("# ")
     leaf_node_list = text_to_children(clean_text)
@@ -181,4 +190,104 @@ def markdown_to_blocks(markdown):
         string = string.strip("\n")
         blocks.append(string)
     return blocks
+
+""" 
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    children = []
+    for block in blocks:
+        html_node = block_to_html_node(block)
+        children.append(html_node)
+    return ParentNode("div", children, None)
+
+
+def block_to_html_node(block):
+    block_type = block_to_block_type(block)
+    if block_type == BlockType.PARAGRAPH:
+        return paragraph_to_html_node(block)
+    if block_type == BlockType.HEADING:
+        return heading_to_html_node(block)
+    if block_type == BlockType.CODE:
+        return code_to_html_node(block)
+    if block_type == BlockType.OLIST:
+        return olist_to_html_node(block)
+    if block_type == BlockType.ULIST:
+        return ulist_to_html_node(block)
+    if block_type == BlockType.QUOTE:
+        return quote_to_html_node(block)
+    raise ValueError("invalid block type")
+
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    children = []
+    for text_node in text_nodes:
+        html_node = text_node_to_html_node(text_node)
+        children.append(html_node)
+    return children
+
+
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    paragraph = " ".join(lines)
+    children = text_to_children(paragraph)
+    return ParentNode("p", children)
+
+
+def heading_to_html_node(block):
+    level = 0
+    for char in block:
+        if char == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}")
+    text = block[level + 1 :]
+    children = text_to_children(text)
+    return ParentNode(f"h{level}", children)
+
+
+def code_to_html_node(block):
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
+    text = block[4:-3]
+    raw_text_node = TextNode(text, TextType.TEXT)
+    child = text_node_to_html_node(raw_text_node)
+    code = ParentNode("code", [child])
+    return ParentNode("pre", [code])
+
+
+def olist_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        parts = item.split(". ", 1)
+        text = parts[1]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ol", html_items)
+
+
+def ulist_to_html_node(block):
+    items = block.split("\n")
+    html_items = []
+    for item in items:
+        text = item[2:]
+        children = text_to_children(text)
+        html_items.append(ParentNode("li", children))
+    return ParentNode("ul", html_items)
+
+
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    new_lines = []
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
+        new_lines.append(line.lstrip(">").strip())
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)
+"""
 
