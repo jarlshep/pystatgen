@@ -32,15 +32,15 @@ def generate_page(from_path, template_path, dest_path):
     if dest_dir_path != "":
         os.makedirs(dest_dir_path, exist_ok=True)
 
-    file_name_full = os.path.basename(from_path)
+    """ file_name_full = os.path.basename(from_path)
     file_name = file_name_full.split(".", 1)
     new_file_name = f"{file_name[0]}.html"
-    write_to_path = os.path.join(dest_path, new_file_name)
+    write_to_path = os.path.join(dest_path, new_file_name) """
     
-    new_file = open(write_to_path, "x")    
+    new_file = open(dest_path, "w")    
     new_file.write(formatted_html)
     new_file.close()
-    print(f"File {write_to_path} create successfully")
+    print(f"File {dest_path} create successfully")
 
 
 
