@@ -9,38 +9,41 @@ def extract_title(markdown):
             return line.strip("# ")
     raise Exception("No h1 for title")
 
-def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+def generate_pages_recursive(from_path, template_path, dest_path):
 
-    f = open(from_path)
-    markdown = f.read()
-    f.close()
+    dir_list = os.listdir(from_path)
 
-    t = open(template_path)
-    template = t.read()
-    t.close()
+    for item in dir_list:
+        into_from = os.path.join(from_path, item)
+        into_dest = os.path.join(dest_path, item)
+        if os.path.isdir(into_from):
+            if not os.path.exists(into_dest):
+                os.mkdir(into_dest)
+            generate_pages_recursive(into_from, template_path, into_dest)
+        else:
+            file_name = item.split(".", 1)
+            html_file_name = f"{file_name[0]}.html"
+            write_to_path = os.path.join(dest_path, html_file_name)
 
-    title = extract_title(markdown)
-    html_string = markdown_to_html_node(markdown).to_html()
+            print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
-    formatted_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_string)
+            f = open(into_from)
+            markdown = f.read()
+            f.close()
 
-    """ if not os.path.exists(dest_path):
-        os.mkdir(dest_path) """
+            t = open(template_path)
+            template = t.read()
+            t.close()
 
-    dest_dir_path = os.path.dirname(dest_path)
-    if dest_dir_path != "":
-        os.makedirs(dest_dir_path, exist_ok=True)
+            title = extract_title(markdown)
+            html_string = markdown_to_html_node(markdown).to_html()
 
-    """ file_name_full = os.path.basename(from_path)
-    file_name = file_name_full.split(".", 1)
-    new_file_name = f"{file_name[0]}.html"
-    write_to_path = os.path.join(dest_path, new_file_name) """
-    
-    new_file = open(dest_path, "w")    
-    new_file.write(formatted_html)
-    new_file.close()
-    print(f"File {dest_path} create successfully")
+            formatted_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_string)
+            
+            new_file = open(write_to_path, "w")    
+            new_file.write(formatted_html)
+            new_file.close()
+            print(f"File {write_to_path} create successfully")
 
 
 
