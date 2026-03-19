@@ -9,7 +9,7 @@ def extract_title(markdown):
             return line.strip("# ")
     raise Exception("No h1 for title")
 
-def generate_pages_recursive(from_path, template_path, dest_path):
+def generate_pages_recursive(from_path, template_path, dest_path, basepath="/"):
 
     dir_list = os.listdir(from_path)
 
@@ -38,7 +38,7 @@ def generate_pages_recursive(from_path, template_path, dest_path):
             title = extract_title(markdown)
             html_string = markdown_to_html_node(markdown).to_html()
 
-            formatted_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_string)
+            formatted_html = template.replace("{{ Title }}", title).replace("{{ Content }}", html_string).replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
             
             new_file = open(write_to_path, "w")    
             new_file.write(formatted_html)
